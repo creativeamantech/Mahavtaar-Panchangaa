@@ -1,0 +1,6 @@
+{
+  "name": "Drik Panchanga",
+  "description": "Observational Indian lunisolar calendar (Hindu Drig-ganita Panchanga) calculating accurate Tithi, Nakshatra, Yoga, Karana, and auspicious timings.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
