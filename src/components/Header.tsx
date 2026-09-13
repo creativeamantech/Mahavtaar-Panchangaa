@@ -7,38 +7,52 @@ import {
   Settings,
   Printer,
   Sun,
+  Moon,
   Globe,
   Wind,
   Clock,
+  Navigation,
+  Loader2,
 } from 'lucide-react';
 import { type Language, translations } from '../i18n';
+import type { AppTheme } from '../types';
 
 export type ActiveView = 'panchanga' | 'calendar' | 'planets' | 'timings' | 'swara' | 'horas';
 
 interface HeaderProps {
   currentDate: string; // dd/mm/yyyy
   currentCity: string;
+  isDeviceLocation?: boolean;
+  isDetectingLocation?: boolean;
   activeView: ActiveView;
   onDateChange: (newDateStr: string) => void;
   onViewChange: (view: ActiveView) => void;
   onOpenLocation: () => void;
+  onDetectDeviceLocation?: () => void;
   onOpenSettings: () => void;
   onPrint: () => void;
   lang: Language;
   onLangChange: (lang: Language) => void;
+  theme: AppTheme;
+  onToggleTheme: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   currentDate,
   currentCity,
+  isDeviceLocation = false,
+  isDetectingLocation = false,
   activeView,
   onDateChange,
   onViewChange,
   onOpenLocation,
+  onDetectDeviceLocation,
   onOpenSettings,
   onPrint,
   lang,
   onLangChange,
+  theme,
+  onToggleTheme,
 }) => {
   const t = translations[lang];
 
@@ -95,239 +109,244 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header
       id="app-header"
-      className="sticky top-0 z-40 border-b border-amber-200/80 bg-white/95 backdrop-blur-md shadow-2xs"
+      className={`sticky top-0 z-40 border-b backdrop-blur-md transition-colors duration-200 ${
+        theme === 'nightSky'
+          ? 'border-indigo-950/70 bg-[#0b0f19]/95 shadow-md shadow-black/40'
+          : 'border-amber-200/80 bg-white/95 shadow-sm'
+      }`}
     >
-      {/* Top Banner */}
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          {/* Logo and Title */}
-          <div className="flex items-center space-x-3.5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-600 to-amber-800 text-white shadow-md ring-1 ring-amber-900/20">
-              <Sun className="h-6 w-6 text-amber-100" />
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          
+          {/* Logo and Title - Hidden on Desktop (moved to Sidebar) */}
+          <div className="flex lg:hidden items-center space-x-3 shrink-0">
+            <div
+              className={`flex h-10 w-10 items-center justify-center rounded-2xl shadow-md ring-1 ${
+                theme === 'nightSky'
+                  ? 'bg-gradient-to-br from-indigo-700 to-indigo-950 text-amber-300 ring-indigo-500/30'
+                  : 'bg-gradient-to-br from-amber-600 to-amber-800 text-white ring-amber-900/20'
+              }`}
+            >
+              <Sun className="h-5 w-5 text-amber-100" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
                 <h1
-                  id="app-title"
-                  className="text-xl sm:text-2xl font-black tracking-tight text-stone-900 font-serif-vedic"
+                  className={`text-lg sm:text-xl font-black tracking-tight font-serif-vedic ${
+                    theme === 'nightSky' ? 'text-white' : 'text-stone-900'
+                  }`}
                 >
                   {t.appName}
                 </h1>
-                <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-900 border border-amber-300 font-devanagari">
-                  दृग्गणित
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold border font-devanagari tracking-wide uppercase ${
+                    theme === 'nightSky'
+                      ? 'bg-indigo-950/80 text-amber-300 border-indigo-700/60'
+                      : 'bg-amber-100 text-amber-900 border-amber-300'
+                  }`}
+                >
+                  Drik
                 </span>
               </div>
-              <p className="text-xs text-stone-500 font-sans mt-0.5">
+              <p
+                className={`text-[11px] font-sans mt-0.5 hidden sm:block ${
+                  theme === 'nightSky' ? 'text-slate-400' : 'text-stone-500'
+                }`}
+              >
                 {t.appSubtitle}
               </p>
             </div>
           </div>
 
-          {/* Language Selector + Location + Settings Bar */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-            {/* Language Switcher */}
+          {/* Controls Area - Takes full width on desktop */}
+          <div className="flex flex-wrap items-center justify-between lg:justify-end gap-3 sm:gap-4 w-full lg:w-auto">
+            
+            {/* Date Navigation */}
             <div
-              id="language-switcher"
-              className="flex items-center rounded-xl bg-stone-100/90 p-1 border border-stone-200"
+              className={`flex items-center space-x-1.5 p-1 rounded-xl border shadow-2xs ${
+                theme === 'nightSky'
+                  ? 'bg-[#12182b] border-indigo-900/60'
+                  : 'bg-stone-50 border-stone-200'
+              }`}
             >
               <button
-                type="button"
-                id="lang-btn-en"
-                onClick={() => onLangChange('en')}
-                className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
-                  lang === 'en'
-                    ? 'bg-white text-amber-950 shadow-xs border border-amber-200/80'
-                    : 'text-stone-600 hover:text-stone-900'
+                onClick={handlePrevDay}
+                className={`flex h-7 w-7 items-center justify-center rounded-lg transition-all ${
+                  theme === 'nightSky'
+                    ? 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                    : 'text-stone-600 hover:bg-white hover:shadow-xs'
                 }`}
-                title="English"
               >
-                English
+                <ChevronLeft className="h-4 w-4" />
               </button>
               <button
-                type="button"
-                id="lang-btn-hi"
-                onClick={() => onLangChange('hi')}
-                className={`rounded-lg px-2.5 py-1 text-xs font-bold font-devanagari transition-all ${
-                  lang === 'hi'
-                    ? 'bg-white text-amber-950 shadow-xs border border-amber-200/80'
-                    : 'text-stone-600 hover:text-stone-900'
+                onClick={handleToday}
+                className={`px-2.5 py-1 text-[11px] font-bold rounded-lg transition-colors font-devanagari ${
+                  theme === 'nightSky'
+                    ? 'text-amber-300 bg-amber-500/20 hover:bg-amber-500/30'
+                    : 'text-amber-900 bg-amber-100/50 hover:bg-amber-100'
                 }`}
-                title="हिन्दी (Hindi)"
               >
-                हिन्दी
+                {t.today}
               </button>
               <button
-                type="button"
-                id="lang-btn-sa"
-                onClick={() => onLangChange('sa')}
-                className={`rounded-lg px-2.5 py-1 text-xs font-bold font-devanagari transition-all ${
-                  lang === 'sa'
-                    ? 'bg-white text-amber-950 shadow-xs border border-amber-200/80'
-                    : 'text-stone-600 hover:text-stone-900'
+                onClick={handleNextDay}
+                className={`flex h-7 w-7 items-center justify-center rounded-lg transition-all ${
+                  theme === 'nightSky'
+                    ? 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                    : 'text-stone-600 hover:bg-white hover:shadow-xs'
                 }`}
-                title="संस्कृतम् (Sanskrit)"
               >
-                संस्कृतम्
+                <ChevronRight className="h-4 w-4" />
+              </button>
+              <div
+                className={`relative border-l pl-1.5 ml-1.5 ${
+                  theme === 'nightSky' ? 'border-indigo-900/60' : 'border-stone-200'
+                }`}
+              >
+                <input
+                  type="date"
+                  value={inputDateVal}
+                  onChange={handleDateInputChange}
+                  className={`h-7 rounded-lg bg-transparent px-1 text-[11px] font-semibold cursor-pointer focus:outline-none w-[110px] ${
+                    theme === 'nightSky' ? 'text-slate-200 [color-scheme:dark]' : 'text-stone-700'
+                  }`}
+                />
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div
+              className={`hidden sm:block h-6 w-px ${
+                theme === 'nightSky' ? 'bg-indigo-950/80' : 'bg-stone-200'
+              }`}
+            />
+
+            {/* Language & Actions */}
+            <div className="flex items-center gap-2">
+              <div
+                className={`flex items-center rounded-lg p-0.5 border ${
+                  theme === 'nightSky'
+                    ? 'bg-[#12182b] border-indigo-900/60'
+                    : 'bg-stone-100/90 border-stone-200'
+                }`}
+              >
+                {(['en', 'hi', 'sa'] as Language[]).map((l) => (
+                  <button
+                    key={l}
+                    onClick={() => onLangChange(l)}
+                    className={`rounded-md px-2 py-1 text-[10px] font-bold transition-all uppercase tracking-wider ${
+                      lang === l
+                        ? theme === 'nightSky'
+                          ? 'bg-indigo-900/80 text-amber-300 shadow-xs border border-indigo-500/40'
+                          : 'bg-white text-amber-950 shadow-xs border border-amber-200/80'
+                        : theme === 'nightSky'
+                        ? 'text-slate-400 hover:text-slate-200'
+                        : 'text-stone-500 hover:text-stone-800'
+                    }`}
+                  >
+                    {l === 'en' ? 'EN' : l === 'hi' ? 'HI' : 'SA'}
+                  </button>
+                ))}
+              </div>
+
+              {/* Location Selector & Quick GPS */}
+              <div className="flex items-center space-x-1">
+                <button
+                  onClick={onOpenLocation}
+                  className={`flex items-center space-x-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-bold shadow-2xs transition-colors max-w-[140px] sm:max-w-[170px] ${
+                    isDeviceLocation
+                      ? theme === 'nightSky'
+                        ? 'border-emerald-600/60 bg-emerald-950/60 text-emerald-300 hover:bg-emerald-900/60'
+                        : 'border-emerald-300 bg-emerald-50/80 text-emerald-900 hover:bg-emerald-100'
+                      : theme === 'nightSky'
+                      ? 'border-indigo-900/60 bg-[#12182b] text-slate-200 hover:bg-slate-800'
+                      : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-50'
+                  }`}
+                  title={isDeviceLocation ? `${currentCity} (Active Device GPS)` : 'Change Location'}
+                >
+                  {isDeviceLocation ? (
+                    <span className="relative flex h-2 w-2 shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
+                    </span>
+                  ) : (
+                    <MapPin
+                      className={`h-3 w-3 shrink-0 ${
+                        theme === 'nightSky' ? 'text-amber-400' : 'text-amber-600'
+                      }`}
+                    />
+                  )}
+                  <span className="truncate">{currentCity}</span>
+                </button>
+
+                {onDetectDeviceLocation && (
+                  <button
+                    onClick={onDetectDeviceLocation}
+                    disabled={isDetectingLocation}
+                    className={`flex h-7 w-7 items-center justify-center rounded-lg border shadow-2xs transition-colors ${
+                      isDeviceLocation
+                        ? theme === 'nightSky'
+                          ? 'border-emerald-600/60 bg-emerald-950/70 text-emerald-300 hover:bg-emerald-900/80'
+                          : 'border-emerald-300 bg-emerald-100/70 text-emerald-800 hover:bg-emerald-200/80'
+                        : theme === 'nightSky'
+                        ? 'border-indigo-900/60 bg-[#12182b] text-slate-300 hover:bg-slate-800'
+                        : 'border-stone-200 bg-white text-stone-600 hover:bg-stone-50'
+                    }`}
+                    title={t.useDeviceLocation}
+                  >
+                    {isDetectingLocation ? (
+                      <Loader2 className="h-3.5 w-3.5 text-amber-500 animate-spin" />
+                    ) : (
+                      <Navigation className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {/* Theme Toggle Button (Parchment <-> Night Sky) */}
+              <button
+                type="button"
+                id="theme-toggle-btn"
+                onClick={onToggleTheme}
+                className={`flex h-7 items-center gap-1.5 rounded-lg border px-2 shadow-2xs transition-all ${
+                  theme === 'nightSky'
+                    ? 'border-indigo-800 bg-indigo-950/80 text-amber-300 hover:bg-indigo-900/90 hover:text-amber-200 ring-1 ring-indigo-500/20'
+                    : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-50 hover:text-amber-800'
+                }`}
+                title={theme === 'nightSky' ? t.switchToParchment : t.switchToNightSky}
+                aria-label={theme === 'nightSky' ? t.switchToParchment : t.switchToNightSky}
+              >
+                {theme === 'nightSky' ? (
+                  <>
+                    <Sun className="h-3.5 w-3.5 text-amber-400 fill-amber-400/20 shrink-0" />
+                    <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-wider font-devanagari">
+                      {t.nightSky}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="h-3.5 w-3.5 text-indigo-700 fill-indigo-700/10 shrink-0" />
+                    <span className="hidden sm:inline text-[10px] font-bold uppercase tracking-wider font-devanagari">
+                      {t.parchment}
+                    </span>
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={onOpenSettings}
+                className={`flex h-7 w-7 items-center justify-center rounded-lg border shadow-2xs transition-colors ${
+                  theme === 'nightSky'
+                    ? 'border-indigo-900/60 bg-[#12182b] text-slate-300 hover:bg-slate-800 hover:text-white'
+                    : 'border-stone-200 bg-white text-stone-600 hover:bg-stone-50'
+                }`}
+                title={t.settings}
+              >
+                <Settings className="h-3.5 w-3.5" />
               </button>
             </div>
 
-            {/* Location selector */}
-            <button
-              id="header-location-btn"
-              onClick={onOpenLocation}
-              className="flex items-center space-x-1.5 rounded-xl border border-stone-300/90 bg-white px-3 py-1.5 text-xs font-bold text-stone-800 shadow-2xs hover:bg-stone-50 hover:border-amber-400 transition-colors"
-              title="Change City or Coordinates"
-            >
-              <MapPin className="h-3.5 w-3.5 text-amber-700" />
-              <span className="max-w-[150px] truncate">{currentCity}</span>
-            </button>
-
-            {/* Settings button */}
-            <button
-              id="header-settings-btn"
-              onClick={onOpenSettings}
-              className="flex items-center space-x-1.5 rounded-xl border border-stone-300/90 bg-white px-2.5 py-1.5 text-xs font-bold text-stone-700 shadow-2xs hover:bg-stone-50 hover:text-stone-900 transition-colors"
-              title={t.settings}
-            >
-              <Settings className="h-3.5 w-3.5 text-stone-600" />
-              <span className="hidden sm:inline font-devanagari">{t.settings}</span>
-            </button>
-
-            {/* Print button */}
-            <button
-              id="header-print-btn"
-              onClick={onPrint}
-              className="flex items-center space-x-1.5 rounded-xl border border-stone-300/90 bg-white px-2.5 py-1.5 text-xs font-bold text-stone-700 shadow-2xs hover:bg-stone-50 hover:text-stone-900 transition-colors"
-              title={t.printAction}
-            >
-              <Printer className="h-3.5 w-3.5 text-stone-600" />
-              <span className="hidden sm:inline font-devanagari">{t.printAction}</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Date Navigation & Views Bar */}
-        <div className="mt-3.5 flex flex-col gap-3 border-t border-stone-100 pt-3 md:flex-row md:items-center md:justify-between">
-          {/* Day Navigation Controls */}
-          <div id="date-navigation-group" className="flex items-center space-x-2">
-            <button
-              id="prev-day-btn"
-              onClick={handlePrevDay}
-              className="flex h-8 w-8 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-700 hover:bg-stone-100 transition-colors shadow-2xs"
-              title={t.prevDay}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-
-            <button
-              id="today-btn"
-              onClick={handleToday}
-              className="rounded-xl border border-amber-300 bg-amber-100/70 px-3.5 py-1.5 text-xs font-bold text-amber-950 hover:bg-amber-200/70 transition-colors font-devanagari shadow-2xs"
-            >
-              {t.today}
-            </button>
-
-            <button
-              id="next-day-btn"
-              onClick={handleNextDay}
-              className="flex h-8 w-8 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-700 hover:bg-stone-100 transition-colors shadow-2xs"
-              title={t.nextDay}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-
-            {/* Direct date picker */}
-            <div className="relative flex items-center">
-              <input
-                id="direct-date-input"
-                type="date"
-                value={inputDateVal}
-                onChange={handleDateInputChange}
-                className="h-8 rounded-xl border border-stone-300 bg-white px-2.5 text-xs font-semibold text-stone-900 focus:border-amber-600 focus:outline-none shadow-2xs"
-              />
-            </div>
-          </div>
-
-          {/* View Mode Tabs */}
-          <div
-            id="view-mode-tabs"
-            className="flex items-center space-x-1 rounded-xl bg-stone-100 p-1 border border-stone-200/70 overflow-x-auto hide-scrollbar max-w-full"
-          >
-            <button
-              type="button"
-              id="tab-panchanga-view"
-              onClick={() => onViewChange('panchanga')}
-              className={`whitespace-nowrap shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold font-devanagari transition-all ${
-                activeView === 'panchanga'
-                  ? 'bg-white text-amber-950 font-black shadow-xs border border-amber-200/80'
-                  : 'text-stone-600 hover:text-stone-900'
-              }`}
-            >
-              {t.dailyPanchanga}
-            </button>
-            <button
-              type="button"
-              id="tab-timings-view"
-              onClick={() => onViewChange('timings')}
-              className={`whitespace-nowrap shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold font-devanagari transition-all ${
-                activeView === 'timings'
-                  ? 'bg-white text-amber-950 font-black shadow-xs border border-amber-200/80'
-                  : 'text-stone-600 hover:text-stone-900'
-              }`}
-            >
-              {t.muhurtasAndTimings}
-            </button>
-            <button
-              type="button"
-              id="tab-planets-view"
-              onClick={() => onViewChange('planets')}
-              className={`whitespace-nowrap shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold font-devanagari transition-all ${
-                activeView === 'planets'
-                  ? 'bg-white text-amber-950 font-black shadow-xs border border-amber-200/80'
-                  : 'text-stone-600 hover:text-stone-900'
-              }`}
-            >
-              {t.grahaSthiti}
-            </button>
-            <button
-              type="button"
-              id="tab-calendar-view"
-              onClick={() => onViewChange('calendar')}
-              className={`flex whitespace-nowrap shrink-0 items-center space-x-1.5 rounded-lg px-3 py-1.5 text-xs font-bold font-devanagari transition-all ${
-                activeView === 'calendar'
-                  ? 'bg-white text-amber-950 font-black shadow-xs border border-amber-200/80'
-                  : 'text-stone-600 hover:text-stone-900'
-              }`}
-            >
-              <CalendarIcon className="h-3.5 w-3.5" />
-              <span>{t.monthCalendar}</span>
-            </button>
-            <button
-              type="button"
-              id="tab-swara-view"
-              onClick={() => onViewChange('swara')}
-              className={`flex whitespace-nowrap shrink-0 items-center space-x-1.5 rounded-lg px-3 py-1.5 text-xs font-bold font-devanagari transition-all ${
-                activeView === 'swara'
-                  ? 'bg-white text-amber-950 font-black shadow-xs border border-amber-200/80'
-                  : 'text-stone-600 hover:text-stone-900'
-              }`}
-            >
-              <Wind className="h-3.5 w-3.5 text-amber-700" />
-              <span>{t.views.swara}</span>
-            </button>
-            <button
-              type="button"
-              id="tab-horas-view"
-              onClick={() => onViewChange('horas')}
-              className={`flex whitespace-nowrap shrink-0 items-center space-x-1.5 rounded-lg px-3 py-1.5 text-xs font-bold font-devanagari transition-all ${
-                activeView === 'horas'
-                  ? 'bg-white text-amber-950 font-black shadow-xs border border-amber-200/80'
-                  : 'text-stone-600 hover:text-stone-900'
-              }`}
-            >
-              <Clock className="h-3.5 w-3.5 text-amber-700" />
-              <span>{lang === 'hi' ? 'वैदिक होरा' : lang === 'sa' ? 'वैदिकहोरा' : 'Vedic Horas'}</span>
-            </button>
           </div>
         </div>
       </div>

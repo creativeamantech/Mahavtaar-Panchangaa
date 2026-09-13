@@ -18,6 +18,7 @@ export interface TranslationDictionary {
     planets: string;
     calendar: string;
     swara: string;
+    transitions?: string;
   };
   vedicAlmanac: string;
   samvatsara: string;
@@ -83,6 +84,16 @@ export interface TranslationDictionary {
   motion: string;
   direct: string;
   retrograde: string;
+  planetTransitionsTitle: string;
+  planetTransitionsSub: string;
+  transitRasi: string;
+  transitNakshatra: string;
+  nextTransit: string;
+  timeline: string;
+  todayTransits: string;
+  punyaKala: string;
+  mahaPunyaKala: string;
+  combust: string;
   monthlyTitle: string;
   monthlySub: string;
   printTitle: string;
@@ -100,6 +111,22 @@ export interface TranslationDictionary {
   ahargana: string;
   popularCities: string;
   detectGps: string;
+  useDeviceLocation: string;
+  detectingLocation: string;
+  locationDetected: string;
+  saveAsDefault: string;
+  savedSettingsTitle: string;
+  savedSettingsDesc: string;
+  resetDefaults: string;
+  settingsSavedToast: string;
+  deviceGps: string;
+  theme: string;
+  parchment: string;
+  nightSky: string;
+  parchmentDesc: string;
+  nightSkyDesc: string;
+  switchToNightSky: string;
+  switchToParchment: string;
   apply: string;
   cancel: string;
 }
@@ -188,6 +215,16 @@ export const translations: Record<Language, TranslationDictionary> = {
     motion: 'Motion',
     direct: 'Direct (Mārgī)',
     retrograde: 'Retrograde (Vakrī)',
+    planetTransitionsTitle: 'Graha Gochara — Planetary Transitions',
+    planetTransitionsSub: 'Precise ingress timings into Rashis and Nakshatras with sacred Punya Kala',
+    transitRasi: 'Rāśi Transition (Saṅkrānti / Ingress)',
+    transitNakshatra: 'Nakṣatra Transition',
+    nextTransit: 'Next Transition',
+    timeline: 'Upcoming Ingress Timeline',
+    todayTransits: "Today's Planetary Transitions",
+    punyaKala: 'Puṇyakāla (Auspicious Window)',
+    mahaPunyaKala: 'Mahāpuṇyakāla',
+    combust: 'Combust (Asta)',
     monthlyTitle: 'Māsa Almanac & Calendar',
     monthlySub: 'Day-by-day Tithi, Nakshatra, and timings overview',
     printTitle: 'Drik Panchanga Sheet',
@@ -204,7 +241,23 @@ export const translations: Record<Language, TranslationDictionary> = {
     kaliYear: 'Kali Yuga Year',
     ahargana: 'Kali Ahargaṇa (Days)',
     popularCities: 'Popular Cities',
-    detectGps: 'Detect Current Location',
+    detectGps: 'Detect Device Location (GPS)',
+    useDeviceLocation: 'Use Device Location',
+    detectingLocation: 'Detecting device GPS...',
+    locationDetected: 'Device location detected successfully',
+    saveAsDefault: 'Save as Default on this Device',
+    savedSettingsTitle: 'Persistent Device Settings',
+    savedSettingsDesc: 'Preferences and coordinates are securely stored on this browser',
+    resetDefaults: 'Reset to Defaults',
+    settingsSavedToast: 'Settings saved to this device',
+    deviceGps: 'Device Location (GPS)',
+    theme: 'Theme',
+    parchment: 'Parchment',
+    nightSky: 'Night Sky',
+    parchmentDesc: 'Warm cosmic ivory and parchment for bright daytime reading',
+    nightSkyDesc: 'Deep indigo and charcoal for comfortable nighttime viewing',
+    switchToNightSky: 'Switch to Night Sky (Dark)',
+    switchToParchment: 'Switch to Parchment (Light)',
     apply: 'Apply Changes',
     cancel: 'Cancel',
   },
@@ -291,6 +344,16 @@ export const translations: Record<Language, TranslationDictionary> = {
     motion: 'गति',
     direct: 'मार्गी',
     retrograde: 'वक्री',
+    planetTransitionsTitle: 'ग्रह गोचर — राशि व नक्षत्र परिवर्तन',
+    planetTransitionsSub: 'प्रत्यक्ष दृश्य ग्रहों का राशि व नक्षत्र प्रवेश तथा संक्रांति पुण्यकाल',
+    transitRasi: 'राशि परिवर्तन (संक्रांति / गोचर)',
+    transitNakshatra: 'नक्षत्र परिवर्तन',
+    nextTransit: 'आगामी गोचर',
+    timeline: 'आगामी गोचर कालक्रम',
+    todayTransits: 'आज के ग्रह गोचर व प्रवेश',
+    punyaKala: 'पुण्यकाल',
+    mahaPunyaKala: 'महापुण्यकाल',
+    combust: 'अस्त',
     monthlyTitle: 'मासिक पञ्चाङ्ग कैलेण्डर',
     monthlySub: 'सम्पूर्ण मास की दैनिक तिथियाँ, नक्षत्र एवं मुहूर्त विवरण',
     printTitle: 'दृग्गणित पञ्चाङ्ग पत्रक',
@@ -307,7 +370,23 @@ export const translations: Record<Language, TranslationDictionary> = {
     kaliYear: 'कलियुगाब्द',
     ahargana: 'कलि अहर्गण (दिन)',
     popularCities: 'प्रमुख नगर',
-    detectGps: 'वर्तमान जीपीएस स्थान लें',
+    detectGps: 'डिवाइस का सटीक जीपीएस स्थान लें',
+    useDeviceLocation: 'डिवाइस स्थान उपयोग करें',
+    detectingLocation: 'डिवाइस जीपीएस की खोज जारी...',
+    locationDetected: 'डिवाइस स्थान सफलतापूर्वक प्राप्त हुआ',
+    saveAsDefault: 'इस डिवाइस पर डिफ़ॉल्ट रूप में सहेजें',
+    savedSettingsTitle: 'स्थायी डिवाइस सेटिंग्स',
+    savedSettingsDesc: 'आपकी प्राथमिकताएं और अक्षांश इस ब्राउज़र में सुरक्षित हैं',
+    resetDefaults: 'मूल सेटिंग्स पर रीसेट करें',
+    settingsSavedToast: 'सेटिंग्स डिवाइस में सुरक्षित हो गईं',
+    deviceGps: 'डिवाइस स्थान (जीपीएस)',
+    theme: 'थीम / स्वरूप',
+    parchment: 'पार्चमेंट',
+    nightSky: 'रात्रि आकाश',
+    parchmentDesc: 'उज्ज्वल दिवस पठन हेतु पारम्परिक स्वर्णिम पाण्डुलिपि पृष्ठ',
+    nightSkyDesc: 'रात्रि में नेत्र-शान्ति हेतु गहन नील एवं चारकोल पृष्ठ',
+    switchToNightSky: 'रात्रि आकाश थीम चालू करें',
+    switchToParchment: 'पार्चमेंट थीम चालू करें',
     apply: 'लागू करें',
     cancel: 'रद्द करें',
   },
@@ -394,6 +473,16 @@ export const translations: Record<Language, TranslationDictionary> = {
     motion: 'गतिः',
     direct: 'मार्गी',
     retrograde: 'वक्री',
+    planetTransitionsTitle: 'ग्रहगोचरः — राशिनक्षत्रसंक्रमणम्',
+    planetTransitionsSub: 'प्रत्यक्षग्रहसंक्रमणकालाः संक्रान्तिपुण्यकालसहिताः',
+    transitRasi: 'राशिपरिवर्तनम् (संक्रान्तिः / गोचरः)',
+    transitNakshatra: 'नक्षत्रप्रवेशः',
+    nextTransit: 'आगामी गोचरः',
+    timeline: 'आगामिसंक्रमणकालक्रमः',
+    todayTransits: 'अद्यतनानि ग्रहसंक्रमणानि',
+    punyaKala: 'पुण्यकालः',
+    mahaPunyaKala: 'महापुण्यकालः',
+    combust: 'अस्तङ्गतः',
     monthlyTitle: 'मासिकपञ्चाङ्गम्',
     monthlySub: 'सम्पूर्णमासस्य तिथिनक्षत्रादिविवरणम्',
     printTitle: 'दृग्गणितपञ्चाङ्गपत्रम्',
@@ -410,7 +499,23 @@ export const translations: Record<Language, TranslationDictionary> = {
     kaliYear: 'कलियुगाब्दः',
     ahargana: 'कल्यहर्गणः',
     popularCities: 'प्रमुखाणि नगराणि',
-    detectGps: 'वर्तमानस्थानं गृह्णातु',
+    detectGps: 'उपकरणस्य प्रत्यक्षस्थानं गृह्णातु (GPS)',
+    useDeviceLocation: 'उपकरणस्थानं प्रयुज्यताम्',
+    detectingLocation: 'उपकरणस्य जीपीएस-अन्वेषणं क्रियते...',
+    locationDetected: 'उपकरणस्थानं सफलतया प्राप्तम्',
+    saveAsDefault: 'अस्मिन् उपकरणे नित्यस्थानरूपेण संरक्षतु',
+    savedSettingsTitle: 'स्थिरोपकरणव्यवस्था',
+    savedSettingsDesc: 'प्राथमिकताः अक्षांशाश्च अस्मिन् उपकरणे सुरक्षिताः',
+    resetDefaults: 'मूलव्यवस्थां प्रतिगच्छतु',
+    settingsSavedToast: 'व्यवस्थाः अस्मिन् उपकरणे संरक्षिताः',
+    deviceGps: 'उपकरणस्थानम् (GPS)',
+    theme: 'स्वरूपम् (Theme)',
+    parchment: 'पत्रपाण्डु (Parchment)',
+    nightSky: 'निशीथाकाशः (Night Sky)',
+    parchmentDesc: 'दिवसपठनार्थं सौम्यपत्रपृष्ठम्',
+    nightSkyDesc: 'रात्रौ नेत्रसौख्यार्थं गहननील-अङ्गारवर्णम्',
+    switchToNightSky: 'निशीथाकाश-स्वरूपं स्वीकुरु',
+    switchToParchment: 'पत्रपाण्डु-स्वरूपं स्वीकुरु',
     apply: 'स्वीकुरु',
     cancel: 'त्यजतु',
   },

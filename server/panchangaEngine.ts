@@ -9,6 +9,10 @@ import type {
   PlanetPosition,
   Segment,
   TimingInterval,
+  PlanetTransitionEvent,
+  PlanetTransitStatus,
+  PlanetTransitionsData,
+  TransitType,
 } from '../src/types';
 
 interface SanskritNamesData {
@@ -109,6 +113,45 @@ export function searchCities(query: string, limit: number = 10): CityLocation[] 
       population: info.population,
     };
   });
+}
+
+export function findNearestCity(lat: number, lon: number): { city: CityLocation; distanceKm: number } | null {
+  if (!citiesData || Object.keys(citiesData).length === 0) return null;
+  let closest: CityLocation | null = null;
+  let minDistance = Infinity;
+
+  for (const [key, info] of Object.entries(citiesData)) {
+    const cLat = (info as any).latitude;
+    const cLon = (info as any).longitude;
+    if (typeof cLat !== 'number' || typeof cLon !== 'number') continue;
+
+    // Haversine formula
+    const R = 6371; // Earth radius in km
+    const dLat = ((cLat - lat) * Math.PI) / 180;
+    const dLon = ((cLon - lon) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat * Math.PI) / 180) *
+        Math.cos((cLat * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const dist = R * c;
+
+    if (dist < minDistance) {
+      minDistance = dist;
+      closest = {
+        name: key,
+        country: (info as any).country || '',
+        latitude: cLat,
+        longitude: cLon,
+        timezone: (info as any).timezone || 'Asia/Kolkata',
+        population: (info as any).population,
+      };
+    }
+  }
+
+  return closest ? { city: closest, distanceKm: Math.round(minDistance) } : null;
 }
 
 export function resolveCity(cityName: string): CityLocation {
@@ -402,6 +445,636 @@ function findSegments(
 const VARJYAM_START_GHATIS = [
   0, 50, 24, 30, 40, 14, 21, 30, 20, 32, 30, 20, 18, 21, 20, 14, 14, 10, 14, 56, 24, 20, 10, 10, 18, 16, 24, 30,
 ];
+
+const SANKRANTI_NAMES = [
+  'Meṣa Saṅkrānti',
+  'Vṛṣabha Saṅkrānti',
+  'Mithuna Saṅkrānti',
+  'Karkaṭa Saṅkrānti',
+  'Siṁha Saṅkrānti',
+  'Kanyā Saṅkrānti',
+  'Tulā Saṅkrānti',
+  'Vṛścika Saṅkrānti',
+  'Dhanu Saṅkrānti',
+  'Makara Saṅkrānti',
+  'Kumbha Saṅkrānti',
+  'Mīna Saṅkrānti',
+];
+
+const ZODIAC_NAMES_DATA: Array<{ en: string; hi: string; sa: string }> = [
+  { en: 'Aries', hi: 'मेष', sa: 'मेष' },
+  { en: 'Taurus', hi: 'वृषभ', sa: 'वृषभ' },
+  { en: 'Gemini', hi: 'मिथुन', sa: 'मिथुन' },
+  { en: 'Cancer', hi: 'कर्क', sa: 'कर्क' },
+  { en: 'Leo', hi: 'सिंह', sa: 'सिंह' },
+  { en: 'Virgo', hi: 'कन्या', sa: 'कन्या' },
+  { en: 'Libra', hi: 'तुला', sa: 'तुला' },
+  { en: 'Scorpio', hi: 'वृश्चिक', sa: 'वृश्चिक' },
+  { en: 'Sagittarius', hi: 'धनु', sa: 'धनु' },
+  { en: 'Capricorn', hi: 'मकर', sa: 'मकर' },
+  { en: 'Aquarius', hi: 'कुम्भ', sa: 'कुम्भ' },
+  { en: 'Pisces', hi: 'मीन', sa: 'मीन' },
+];
+
+const NAKSHATRA_NAMES_DATA: Array<{ en: string; hi: string; sa: string }> = [
+  { en: 'Ashwini', hi: 'अश्विनी', sa: 'अश्विनी' },
+  { en: 'Bharani', hi: 'भरणी', sa: 'भरणी' },
+  { en: 'Krittika', hi: 'कृत्तिका', sa: 'कृत्तिका' },
+  { en: 'Rohini', hi: 'रोहिणी', sa: 'रोहिणी' },
+  { en: 'Mrigashirsha', hi: 'मृगशिरा', sa: 'मृगशीर्षा' },
+  { en: 'Ardra', hi: 'आर्द्रा', sa: 'आर्द्रा' },
+  { en: 'Punarvasu', hi: 'पुनर्वसु', sa: 'पुनर्वसु' },
+  { en: 'Pushya', hi: 'पुष्य', sa: 'पुष्य' },
+  { en: 'Ashlesha', hi: 'आश्लेषा', sa: 'आश्लेषा' },
+  { en: 'Magha', hi: 'मघा', sa: 'मघा' },
+  { en: 'Purva Phalguni', hi: 'पूर्वा फाल्गुनी', sa: 'पूर्वाफाल्गुनी' },
+  { en: 'Uttara Phalguni', hi: 'उत्तरा फाल्गुनी', sa: 'उत्तराफाल्गुनी' },
+  { en: 'Hasta', hi: 'हस्त', sa: 'हस्त' },
+  { en: 'Chitra', hi: 'चित्रा', sa: 'चित्रा' },
+  { en: 'Swati', hi: 'स्वाति', sa: 'स्वाती' },
+  { en: 'Vishakha', hi: 'विशाखा', sa: 'विशाखा' },
+  { en: 'Anuradha', hi: 'अनुराधा', sa: 'अनुराधा' },
+  { en: 'Jyeshtha', hi: 'ज्येष्ठा', sa: 'ज्येष्ठा' },
+  { en: 'Mula', hi: 'मूल', sa: 'मूल' },
+  { en: 'Purva Ashadha', hi: 'पूर्वाषाढ़ा', sa: 'पूर्वाषाढा' },
+  { en: 'Uttara Ashadha', hi: 'उत्तराषाढ़ा', sa: 'उत्तराषाढा' },
+  { en: 'Shravana', hi: 'श्रवण', sa: 'श्रवण' },
+  { en: 'Dhanishta', hi: 'धनिष्ठा', sa: 'धनिष्ठा' },
+  { en: 'Shatabhisha', hi: 'शतभिषा', sa: 'शतभिषा' },
+  { en: 'Purva Bhadrapada', hi: 'पूर्वा भाद्रपद', sa: 'पूर्वभाद्रपदा' },
+  { en: 'Uttara Bhadrapada', hi: 'उत्तरा भाद्रपद', sa: 'उत्तरभाद्रपदा' },
+  { en: 'Revati', hi: 'रेवती', sa: 'रेवती' },
+];
+
+function formatDateInTz(d: Date, timeZone: string): string {
+  try {
+    return new Intl.DateTimeFormat('en-GB', { timeZone, day: '2-digit', month: '2-digit', year: 'numeric' }).format(d);
+  } catch {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${pad(d.getUTCDate())}/${pad(d.getUTCMonth() + 1)}/${d.getUTCFullYear()}`;
+  }
+}
+
+function formatTimeInTz(d: Date, timeZone: string): string {
+  try {
+    return new Intl.DateTimeFormat('en-GB', { timeZone, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(d);
+  } catch {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
+  }
+}
+
+function formatDayOfWeekInTz(d: Date, timeZone: string): string {
+  try {
+    return new Intl.DateTimeFormat('en-US', { timeZone, weekday: 'long' }).format(d);
+  } catch {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days[d.getUTCDay()];
+  }
+}
+
+function formatRelativeTime(targetDate: Date, baseDate: Date): string {
+  const diffMs = targetDate.getTime() - baseDate.getTime();
+  const isPast = diffMs < 0;
+  const absMs = Math.abs(diffMs);
+  const totalMinutes = Math.floor(absMs / 60000);
+  const totalHours = Math.floor(totalMinutes / 60);
+  const days = Math.floor(totalHours / 24);
+  const remHours = totalHours % 24;
+  const remMins = totalMinutes % 60;
+
+  if (days === 0) {
+    if (totalHours === 0) {
+      return isPast ? `${remMins}m ago` : `in ${remMins}m`;
+    }
+    return isPast ? `${totalHours}h ${remMins}m ago` : `in ${totalHours}h ${remMins}m`;
+  }
+  if (days === 1) {
+    return isPast ? `yesterday` : `in 1d ${remHours}h`;
+  }
+  return isPast ? `${days}d ago` : `in ${days}d ${remHours}h`;
+}
+
+function getBodySiderealLongitude(bodyId: string, t: Astronomy.AstroTime, ayanamsaKey: CoordinateSelection): number {
+  let tropLon = 0;
+  if (bodyId === 'sun') {
+    tropLon = Astronomy.SunPosition(t).elon;
+  } else if (bodyId === 'moon') {
+    tropLon = Astronomy.Ecliptic(Astronomy.GeoVector(Astronomy.Body.Moon, t, true)).elon;
+  } else if (bodyId === 'mars') {
+    tropLon = Astronomy.Ecliptic(Astronomy.GeoVector(Astronomy.Body.Mars, t, true)).elon;
+  } else if (bodyId === 'mercury') {
+    tropLon = Astronomy.Ecliptic(Astronomy.GeoVector(Astronomy.Body.Mercury, t, true)).elon;
+  } else if (bodyId === 'jupiter') {
+    tropLon = Astronomy.Ecliptic(Astronomy.GeoVector(Astronomy.Body.Jupiter, t, true)).elon;
+  } else if (bodyId === 'venus') {
+    tropLon = Astronomy.Ecliptic(Astronomy.GeoVector(Astronomy.Body.Venus, t, true)).elon;
+  } else if (bodyId === 'saturn') {
+    tropLon = Astronomy.Ecliptic(Astronomy.GeoVector(Astronomy.Body.Saturn, t, true)).elon;
+  } else if (bodyId === 'rahu' || bodyId === 'ketu') {
+    const T = t.ut / 36525.0;
+    let r = (125.04452 - 1934.136261 * T + 0.0020708 * T * T) % 360;
+    if (r < 0) r += 360;
+    tropLon = bodyId === 'rahu' ? r : (r + 180) % 360;
+  }
+  const ayanamsa = calculateAyanamsa(t, ayanamsaKey);
+  return ((tropLon - ayanamsa) % 360 + 360) % 360;
+}
+
+function getRasiTransitDescription(
+  planetId: string,
+  planetName: string,
+  toRasiNameEn: string,
+  toRasiNameHi: string,
+  toRasiNameSa: string,
+  specialName?: string
+) {
+  if (planetId === 'sun' && specialName) {
+    return {
+      en: `Sūrya enters ${toRasiNameEn} marking sacred ${specialName}. Auspicious period for solar worship, charity (Dāna), ancestor homage (Tarpaṇa), and spiritual sadhana.`,
+      hi: `सूर्य का ${toRasiNameHi} में प्रवेश — पावन ${specialName}। सूर्य तर्पण, दान-पुण्य, पितृ शांति एवं जप-तप हेतु विशेष फलदायी।`,
+      sa: `सूर्यस्य ${toRasiNameSa}प्रवेशः (${specialName})। पितृतर्पण-दान-जप-सूर्यपूजनार्थं महापुण्यप्रदः कालः।`,
+    };
+  }
+  if (planetId === 'moon') {
+    return {
+      en: `Candra enters ${toRasiNameEn} (Chandra Gochara). Influences mental tranquility, emotional rhythm, and daily astrological favorability.`,
+      hi: `चन्द्रमा का ${toRasiNameHi} में प्रवेश (चंद्र गोचर)। मनोबल, मानसिक शांति व दैनिक शुभ कार्यों को प्रभावित करता है।`,
+      sa: `चन्द्रस्य ${toRasiNameSa}प्रवेशः। मनोवृत्ति-सौभाग्य-दैनिकगोचरप्रभावाय शुभप्रदः।`,
+    };
+  }
+  if (planetId === 'mars') {
+    return {
+      en: `Maṅgala enters ${toRasiNameEn}. Energizes courage, physical vigor, property ventures, and bold undertakings.`,
+      hi: `मंगल का ${toRasiNameHi} में प्रवेश। साहस, पराक्रम, भूमि व ऊर्जा संबंधी कार्यों पर प्रभाव।`,
+      sa: `मङ्गलस्य ${toRasiNameSa}प्रवेशः। पराक्रम-ऊर्जा-विजयकार्यार्थं फलप्रदः।`,
+    };
+  }
+  if (planetId === 'mercury') {
+    return {
+      en: `Budha enters ${toRasiNameEn}. Enhances intellect, commercial negotiations, speech, and mathematical precision.`,
+      hi: `बुध का ${toRasiNameHi} में प्रवेश। बुद्धि, वाणी, व्यापार व कलात्मक निर्णयों के लिए अनुकूल।`,
+      sa: `बुधस्य ${toRasiNameSa}प्रवेशः। बुद्धि-विद्या-वाणिज्य-संवादार्थं शुभकरः।`,
+    };
+  }
+  if (planetId === 'jupiter') {
+    return {
+      en: `Guru (Bṛhaspati) enters ${toRasiNameEn}. Major divine blessing for wisdom, dharma, progeny, higher knowledge, and auspicious ceremonies.`,
+      hi: `देवगुरु बृहस्पति का ${toRasiNameHi} में प्रवेश। ज्ञान, धर्म, संतति एवं मांगलिक आयोजनों के लिए अत्यंत कल्याणकारी।`,
+      sa: `गुरोः ${toRasiNameSa}प्रवेशः। धर्म-विद्या-माङ्गलिककार्याणां कृते परमशुभप्रदः।`,
+    };
+  }
+  if (planetId === 'venus') {
+    return {
+      en: `Śukra enters ${toRasiNameEn}. Auspicious for creative arts, aesthetic grace, marital harmony, and prosperity.`,
+      hi: `शुक्र का ${toRasiNameHi} में प्रवेश। सुख-समृद्धि, कला, सौंदर्य एवं दांपत्य सौहार्द को बढ़ाता है।`,
+      sa: `शुक्रस्य ${toRasiNameSa}प्रवेशः। सौन्दर्य-समृद्धि-कलानां कृते शुभप्रदः।`,
+    };
+  }
+  if (planetId === 'saturn') {
+    return {
+      en: `Śani enters ${toRasiNameEn}. Karmic milestone; rewards perseverance, justice, discipline, and devotion to righteous conduct.`,
+      hi: `शनि देव का ${toRasiNameHi} में प्रवेश। महत्वपूर्ण कर्मफल गोचर; अनुशासन, संयम व धर्मपालन का संदेश।`,
+      sa: `शनेः ${toRasiNameSa}प्रवेशः। कर्मफल-संयम-न्यायधर्मपालनार्थं विशेषकालः।`,
+    };
+  }
+  if (planetId === 'rahu' || planetId === 'ketu') {
+    return {
+      en: `${planetName} retrogrades into ${toRasiNameEn}. Significant nodal shift guiding karmic purification and spiritual transformation.`,
+      hi: `${planetName} का वक्री गति से ${toRasiNameHi} में प्रवेश। आध्यात्मिक मंथन व गहन जीवन परिवर्तन का काल।`,
+      sa: `राहोः/केतोः वक्रगत्या ${toRasiNameSa}प्रवेशः। आत्मनिरीक्षण-आध्यात्मिकपरिवर्तनार्थं कारकः।`,
+    };
+  }
+  return {
+    en: `${planetName} enters ${toRasiNameEn}.`,
+    hi: `${planetName} का ${toRasiNameHi} में प्रवेश।`,
+    sa: `${planetName}स्य ${toRasiNameSa}प्रवेशः।`,
+  };
+}
+
+export function calculatePlanetTransitions(
+  location: CityLocation,
+  tSunrise: Astronomy.AstroTime,
+  tNextSunrise: Astronomy.AstroTime,
+  ayanamsaKey: CoordinateSelection,
+  civilDate: Date
+): PlanetTransitionsData {
+  const timeZone = location.timezone || 'Asia/Kolkata';
+  const baseDate = tSunrise.date;
+  const sunLon = getBodySiderealLongitude('sun', tSunrise, ayanamsaKey);
+
+  const grahas: Array<{
+    id: string;
+    name: string;
+    sanskritName: string;
+    symbol: string;
+    stepHours: number;
+    maxScanHours: number;
+  }> = [
+    { id: 'sun', name: 'Sun', sanskritName: 'Sūrya', symbol: '☉', stepHours: 3, maxScanHours: 35 * 24 },
+    { id: 'moon', name: 'Moon', sanskritName: 'Candra', symbol: '☽', stepHours: 1, maxScanHours: 4 * 24 },
+    { id: 'mars', name: 'Mars', sanskritName: 'Maṅgala', symbol: '♂', stepHours: 3, maxScanHours: 70 * 24 },
+    { id: 'mercury', name: 'Mercury', sanskritName: 'Budha', symbol: '☿', stepHours: 3, maxScanHours: 50 * 24 },
+    { id: 'jupiter', name: 'Jupiter', sanskritName: 'Guru', symbol: '♃', stepHours: 12, maxScanHours: 400 * 24 },
+    { id: 'venus', name: 'Venus', sanskritName: 'Śukra', symbol: '♀', stepHours: 3, maxScanHours: 50 * 24 },
+    { id: 'saturn', name: 'Saturn', sanskritName: 'Śani', symbol: '♄', stepHours: 12, maxScanHours: 800 * 24 },
+    { id: 'rahu', name: 'Rahu', sanskritName: 'Rāhu', symbol: '☊', stepHours: 12, maxScanHours: 600 * 24 },
+    { id: 'ketu', name: 'Ketu', sanskritName: 'Ketu', symbol: '☋', stepHours: 12, maxScanHours: 600 * 24 },
+  ];
+
+  const planetStatuses: PlanetTransitStatus[] = [];
+  const upcomingEvents: PlanetTransitionEvent[] = [];
+
+  for (const g of grahas) {
+    const currentLon = getBodySiderealLongitude(g.id, tSunrise, ayanamsaKey);
+    const rasiIdx = Math.floor(currentLon / 30);
+    const degInRasiNum = currentLon % 30;
+    const degInRasiStr = formatDegreesDMS(degInRasiNum);
+    const progressPercent = Math.min(100, Math.max(0, Math.round((degInRasiNum / 30.0) * 100)));
+
+    const nakIdx = Math.floor(currentLon / (360.0 / 27.0));
+    const pada = Math.floor((currentLon % (360.0 / 27.0)) / (360.0 / 108.0)) + 1;
+
+    // Check motion (isRetrograde)
+    let isRetrograde = false;
+    if (g.id === 'rahu' || g.id === 'ketu') {
+      isRetrograde = true;
+    } else if (g.id === 'sun' || g.id === 'moon') {
+      isRetrograde = false;
+    } else {
+      const tNext = Astronomy.MakeTime(new Date(baseDate.getTime() + 3600000));
+      const nextLon = getBodySiderealLongitude(g.id, tNext, ayanamsaKey);
+      let speed = (nextLon - currentLon) % 360;
+      if (speed > 180) speed -= 360;
+      if (speed < -180) speed += 360;
+      isRetrograde = speed < 0;
+    }
+
+    // Check Combustion (Asta)
+    let isCombust = false;
+    let combustDistanceDeg: number | undefined;
+    if (['mercury', 'venus', 'mars', 'jupiter', 'saturn'].includes(g.id)) {
+      const angDiff = Math.abs((currentLon - sunLon + 540) % 360 - 180);
+      combustDistanceDeg = Math.round(angDiff * 10) / 10;
+      let limit = 15;
+      if (g.id === 'mercury') limit = isRetrograde ? 12 : 14;
+      else if (g.id === 'venus') limit = isRetrograde ? 8 : 10;
+      else if (g.id === 'mars') limit = 17;
+      else if (g.id === 'jupiter') limit = 11;
+      else if (g.id === 'saturn') limit = 15;
+      isCombust = angDiff <= limit;
+    }
+
+    // 1. Next Rasi Transit Search
+    let nextRasiTransit: PlanetTransitionEvent | undefined;
+    {
+      let curMs = baseDate.getTime();
+      let prevMs = curMs;
+      const endMs = baseDate.getTime() + g.maxScanHours * 3600000;
+      const stepMs = g.stepHours * 3600000;
+
+      while (curMs < endMs) {
+        curMs += stepMs;
+        const testLon = getBodySiderealLongitude(g.id, Astronomy.MakeTime(new Date(curMs)), ayanamsaKey);
+        const testRasi = Math.floor(testLon / 30);
+        if (testRasi !== rasiIdx) {
+          // Bisection root find between prevMs and curMs
+          let low = prevMs;
+          let high = curMs;
+          while (high - low > 30000) {
+            const mid = (low + high) / 2;
+            const midLon = getBodySiderealLongitude(g.id, Astronomy.MakeTime(new Date(mid)), ayanamsaKey);
+            if (Math.floor(midLon / 30) === rasiIdx) {
+              low = mid;
+            } else {
+              high = mid;
+            }
+          }
+          const transitDate = new Date(high);
+          const toRasi = Math.floor(getBodySiderealLongitude(g.id, Astronomy.MakeTime(transitDate), ayanamsaKey) / 30);
+          const fromRasiInfo = ZODIAC_NAMES_DATA[rasiIdx] || { en: 'Aries', hi: 'मेष', sa: 'मेष' };
+          const toRasiInfo = ZODIAC_NAMES_DATA[toRasi] || { en: 'Aries', hi: 'मेष', sa: 'मेष' };
+
+          let specialName: string | undefined;
+          let punyaKala: TimingInterval | undefined;
+          let mahaPunyaKala: TimingInterval | undefined;
+
+          if (g.id === 'sun') {
+            specialName = SANKRANTI_NAMES[toRasi];
+            const pStart = new Date(transitDate.getTime() - 6.4 * 3600000);
+            const pEnd = new Date(transitDate.getTime() + 6.4 * 3600000);
+            punyaKala = {
+              start: formatTimeInTz(pStart, timeZone),
+              end: formatTimeInTz(pEnd, timeZone),
+              name: `${specialName} Puṇyakāla`,
+            };
+            const mpStart = new Date(transitDate.getTime() - 1.6 * 3600000);
+            const mpEnd = new Date(transitDate.getTime() + 1.6 * 3600000);
+            mahaPunyaKala = {
+              start: formatTimeInTz(mpStart, timeZone),
+              end: formatTimeInTz(mpEnd, timeZone),
+              name: `${specialName} Mahāpuṇyakāla`,
+            };
+          }
+
+          const isToday =
+            transitDate.getTime() >= tSunrise.date.getTime() &&
+            transitDate.getTime() <= tNextSunrise.date.getTime();
+
+          const desc = getRasiTransitDescription(
+            g.id,
+            g.sanskritName,
+            toRasiInfo.en,
+            toRasiInfo.hi,
+            toRasiInfo.sa,
+            specialName
+          );
+
+          nextRasiTransit = {
+            id: `${g.id}-rasi-${transitDate.getTime()}`,
+            planetId: g.id,
+            planetName: g.name,
+            sanskritName: g.sanskritName,
+            symbol: g.symbol,
+            type: 'rasi',
+            timestamp: transitDate.toISOString(),
+            dateStr: formatDateInTz(transitDate, timeZone),
+            timeStr: formatTimeInTz(transitDate, timeZone),
+            dayOfWeek: formatDayOfWeekInTz(transitDate, timeZone),
+            relativeText: formatRelativeTime(transitDate, baseDate),
+            isToday,
+            fromValue: fromRasiInfo.en,
+            toValue: toRasiInfo.en,
+            fromName: fromRasiInfo.sa,
+            toName: toRasiInfo.sa,
+            specialName,
+            punyaKala,
+            mahaPunyaKala,
+            description: desc,
+          };
+          break;
+        }
+        prevMs = curMs;
+      }
+    }
+
+    // 2. Next Nakshatra Transit Search
+    let nextNakshatraTransit: PlanetTransitionEvent | undefined;
+    {
+      let curMs = baseDate.getTime();
+      let prevMs = curMs;
+      const nakScanHours = g.id === 'moon' ? 36 : Math.min(g.maxScanHours, 120 * 24);
+      const endMs = baseDate.getTime() + nakScanHours * 3600000;
+      const stepMs = (g.id === 'moon' ? 1 : 2) * 3600000;
+
+      while (curMs < endMs) {
+        curMs += stepMs;
+        const testLon = getBodySiderealLongitude(g.id, Astronomy.MakeTime(new Date(curMs)), ayanamsaKey);
+        const testNak = Math.floor(testLon / (360.0 / 27.0));
+        if (testNak !== nakIdx) {
+          let low = prevMs;
+          let high = curMs;
+          while (high - low > 30000) {
+            const mid = (low + high) / 2;
+            const midLon = getBodySiderealLongitude(g.id, Astronomy.MakeTime(new Date(mid)), ayanamsaKey);
+            if (Math.floor(midLon / (360.0 / 27.0)) === nakIdx) {
+              low = mid;
+            } else {
+              high = mid;
+            }
+          }
+          const transitDate = new Date(high);
+          const toNak = Math.floor(getBodySiderealLongitude(g.id, Astronomy.MakeTime(transitDate), ayanamsaKey) / (360.0 / 27.0));
+          const fromNakInfo = NAKSHATRA_NAMES_DATA[nakIdx] || { en: 'Ashwini', hi: 'अश्विनी', sa: 'अश्विनी' };
+          const toNakInfo = NAKSHATRA_NAMES_DATA[toNak] || { en: 'Ashwini', hi: 'अश्विनी', sa: 'अश्विनी' };
+
+          const isToday =
+            transitDate.getTime() >= tSunrise.date.getTime() &&
+            transitDate.getTime() <= tNextSunrise.date.getTime();
+
+          nextNakshatraTransit = {
+            id: `${g.id}-nak-${transitDate.getTime()}`,
+            planetId: g.id,
+            planetName: g.name,
+            sanskritName: g.sanskritName,
+            symbol: g.symbol,
+            type: 'nakshatra',
+            timestamp: transitDate.toISOString(),
+            dateStr: formatDateInTz(transitDate, timeZone),
+            timeStr: formatTimeInTz(transitDate, timeZone),
+            dayOfWeek: formatDayOfWeekInTz(transitDate, timeZone),
+            relativeText: formatRelativeTime(transitDate, baseDate),
+            isToday,
+            fromValue: fromNakInfo.en,
+            toValue: toNakInfo.en,
+            fromName: fromNakInfo.sa,
+            toName: toNakInfo.sa,
+            description: {
+              en: `${g.name} enters ${toNakInfo.en} Nakṣatra (${toNakInfo.sa}). Shifts subtle cosmic resonance and lunar-planetary vibration.`,
+              hi: `${g.sanskritName} का ${toNakInfo.hi} नक्षत्र में प्रवेश। सूक्ष्म ऊर्जा एवं नक्षत्र चरण प्रभाव में परिवर्तन।`,
+              sa: `${g.sanskritName}स्य ${toNakInfo.sa}नक्षत्रे प्रवेशः। सूक्ष्मतरङ्गपरिवर्तनं जनयति।`,
+            },
+          };
+          break;
+        }
+        prevMs = curMs;
+      }
+    }
+
+    const curRasiInfo = ZODIAC_NAMES_DATA[rasiIdx] || { en: 'Aries', hi: 'मेष', sa: 'मेष' };
+    const curNakInfo = NAKSHATRA_NAMES_DATA[nakIdx] || { en: 'Ashwini', hi: 'अश्विनी', sa: 'अश्विनी' };
+
+    planetStatuses.push({
+      planetId: g.id,
+      planetName: g.name,
+      sanskritName: g.sanskritName,
+      symbol: g.symbol,
+      currentRasi: curRasiInfo.sa,
+      currentRasiNumber: rasiIdx + 1,
+      degreesInRasi: degInRasiStr,
+      degreesInRasiNum: degInRasiNum,
+      progressPercent,
+      currentNakshatra: curNakInfo.sa,
+      currentNakshatraNumber: nakIdx + 1,
+      currentPada: pada,
+      isRetrograde,
+      isCombust,
+      combustDistanceDeg,
+      nextRasiTransit,
+      nextNakshatraTransit,
+    });
+  }
+
+  // 3. Scan Upcoming Timeline Events across the next 60 days
+  const timelineEndMs = baseDate.getTime() + 60 * 86400000;
+  for (const g of grahas) {
+    let curMs = baseDate.getTime();
+    let prevMs = curMs;
+    let prevRasi = Math.floor(getBodySiderealLongitude(g.id, Astronomy.MakeTime(new Date(curMs)), ayanamsaKey) / 30);
+    const stepHours = g.id === 'moon' ? 2 : 6;
+    const stepMs = stepHours * 3600000;
+
+    while (curMs < timelineEndMs) {
+      curMs += stepMs;
+      const testLon = getBodySiderealLongitude(g.id, Astronomy.MakeTime(new Date(curMs)), ayanamsaKey);
+      const testRasi = Math.floor(testLon / 30);
+      if (testRasi !== prevRasi) {
+        let low = prevMs;
+        let high = curMs;
+        while (high - low > 30000) {
+          const mid = (low + high) / 2;
+          const midLon = getBodySiderealLongitude(g.id, Astronomy.MakeTime(new Date(mid)), ayanamsaKey);
+          if (Math.floor(midLon / 30) === prevRasi) {
+            low = mid;
+          } else {
+            high = mid;
+          }
+        }
+        const transitDate = new Date(high);
+        const toRasi = Math.floor(getBodySiderealLongitude(g.id, Astronomy.MakeTime(transitDate), ayanamsaKey) / 30);
+        const fromRasiInfo = ZODIAC_NAMES_DATA[prevRasi] || { en: 'Aries', hi: 'मेष', sa: 'मेष' };
+        const toRasiInfo = ZODIAC_NAMES_DATA[toRasi] || { en: 'Aries', hi: 'मेष', sa: 'मेष' };
+
+        let specialName: string | undefined;
+        let punyaKala: TimingInterval | undefined;
+        let mahaPunyaKala: TimingInterval | undefined;
+
+        if (g.id === 'sun') {
+          specialName = SANKRANTI_NAMES[toRasi];
+          const pStart = new Date(transitDate.getTime() - 6.4 * 3600000);
+          const pEnd = new Date(transitDate.getTime() + 6.4 * 3600000);
+          punyaKala = {
+            start: formatTimeInTz(pStart, timeZone),
+            end: formatTimeInTz(pEnd, timeZone),
+            name: `${specialName} Puṇyakāla`,
+          };
+          const mpStart = new Date(transitDate.getTime() - 1.6 * 3600000);
+          const mpEnd = new Date(transitDate.getTime() + 1.6 * 3600000);
+          mahaPunyaKala = {
+            start: formatTimeInTz(mpStart, timeZone),
+            end: formatTimeInTz(mpEnd, timeZone),
+            name: `${specialName} Mahāpuṇyakāla`,
+          };
+        }
+
+        const isToday =
+          transitDate.getTime() >= tSunrise.date.getTime() &&
+          transitDate.getTime() <= tNextSunrise.date.getTime();
+
+        const desc = getRasiTransitDescription(
+          g.id,
+          g.sanskritName,
+          toRasiInfo.en,
+          toRasiInfo.hi,
+          toRasiInfo.sa,
+          specialName
+        );
+
+        upcomingEvents.push({
+          id: `${g.id}-rasi-${transitDate.getTime()}`,
+          planetId: g.id,
+          planetName: g.name,
+          sanskritName: g.sanskritName,
+          symbol: g.symbol,
+          type: 'rasi',
+          timestamp: transitDate.toISOString(),
+          dateStr: formatDateInTz(transitDate, timeZone),
+          timeStr: formatTimeInTz(transitDate, timeZone),
+          dayOfWeek: formatDayOfWeekInTz(transitDate, timeZone),
+          relativeText: formatRelativeTime(transitDate, baseDate),
+          isToday,
+          fromValue: fromRasiInfo.en,
+          toValue: toRasiInfo.en,
+          fromName: fromRasiInfo.sa,
+          toName: toRasiInfo.sa,
+          specialName,
+          punyaKala,
+          mahaPunyaKala,
+          description: desc,
+        });
+
+        prevRasi = testRasi;
+      }
+      prevMs = curMs;
+    }
+  }
+
+  // Also include major planetary nakshatra transits over next 45 days (excluding rapid moon to prevent overwhelming timeline)
+  const nakTimelineEndMs = baseDate.getTime() + 45 * 86400000;
+  for (const g of grahas) {
+    if (g.id === 'moon') continue; // Moon changes nakshatra daily, covered in 5 angas
+    let curMs = baseDate.getTime();
+    let prevMs = curMs;
+    let prevNak = Math.floor(getBodySiderealLongitude(g.id, Astronomy.MakeTime(new Date(curMs)), ayanamsaKey) / (360.0 / 27.0));
+    const stepMs = 6 * 3600000;
+
+    while (curMs < nakTimelineEndMs) {
+      curMs += stepMs;
+      const testLon = getBodySiderealLongitude(g.id, Astronomy.MakeTime(new Date(curMs)), ayanamsaKey);
+      const testNak = Math.floor(testLon / (360.0 / 27.0));
+      if (testNak !== prevNak) {
+        let low = prevMs;
+        let high = curMs;
+        while (high - low > 30000) {
+          const mid = (low + high) / 2;
+          const midLon = getBodySiderealLongitude(g.id, Astronomy.MakeTime(new Date(mid)), ayanamsaKey);
+          if (Math.floor(midLon / (360.0 / 27.0)) === prevNak) {
+            low = mid;
+          } else {
+            high = mid;
+          }
+        }
+        const transitDate = new Date(high);
+        const toNak = Math.floor(getBodySiderealLongitude(g.id, Astronomy.MakeTime(transitDate), ayanamsaKey) / (360.0 / 27.0));
+        const fromNakInfo = NAKSHATRA_NAMES_DATA[prevNak] || { en: 'Ashwini', hi: 'अश्विनी', sa: 'अश्विनी' };
+        const toNakInfo = NAKSHATRA_NAMES_DATA[toNak] || { en: 'Ashwini', hi: 'अश्विनी', sa: 'अश्विनी' };
+
+        const isToday =
+          transitDate.getTime() >= tSunrise.date.getTime() &&
+          transitDate.getTime() <= tNextSunrise.date.getTime();
+
+        upcomingEvents.push({
+          id: `${g.id}-nak-${transitDate.getTime()}`,
+          planetId: g.id,
+          planetName: g.name,
+          sanskritName: g.sanskritName,
+          symbol: g.symbol,
+          type: 'nakshatra',
+          timestamp: transitDate.toISOString(),
+          dateStr: formatDateInTz(transitDate, timeZone),
+          timeStr: formatTimeInTz(transitDate, timeZone),
+          dayOfWeek: formatDayOfWeekInTz(transitDate, timeZone),
+          relativeText: formatRelativeTime(transitDate, baseDate),
+          isToday,
+          fromValue: fromNakInfo.en,
+          toValue: toNakInfo.en,
+          fromName: fromNakInfo.sa,
+          toName: toNakInfo.sa,
+          description: {
+            en: `${g.name} enters ${toNakInfo.en} Nakṣatra (${toNakInfo.sa}). Shifts subtle cosmic resonance and vibrational influence.`,
+            hi: `${g.sanskritName} का ${toNakInfo.hi} नक्षत्र में प्रवेश। सूक्ष्म ऊर्जा एवं नक्षत्र चरण प्रभाव में परिवर्तन।`,
+            sa: `${g.sanskritName}स्य ${toNakInfo.sa}नक्षत्रे प्रवेशः। सूक्ष्मतरङ्गपरिवर्तनं जनयति।`,
+          },
+        });
+
+        prevNak = testNak;
+      }
+      prevMs = curMs;
+    }
+  }
+
+  // Sort upcoming events chronologically
+  upcomingEvents.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+  // Filter today's events
+  const todayEvents = upcomingEvents.filter((ev) => ev.isToday);
+
+  return {
+    planets: planetStatuses,
+    upcomingEvents,
+    todayEvents,
+  };
+}
 
 export function getPopularCities(): CityLocation[] {
   const popular = [
@@ -1008,6 +1681,13 @@ export function computePanchanga(
     sun_rasi: sunRasiName,
     moon_rasi: moonRasiName,
     swara_yoga: swaraRule,
+    planet_transitions: calculatePlanetTransitions(
+      location,
+      tSunrise,
+      tNextSunrise,
+      coordinateSelection,
+      civilDate
+    ),
   };
 }
 

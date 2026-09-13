@@ -35,6 +35,62 @@ export interface PlanetPosition {
   isRetrograde?: boolean;
 }
 
+export type TransitType = 'rasi' | 'nakshatra' | 'retrograde' | 'direct' | 'combust' | 'rise';
+
+export interface PlanetTransitionEvent {
+  id: string;
+  planetId: string;
+  planetName: string;
+  sanskritName: string;
+  symbol: string;
+  type: TransitType;
+  timestamp: string;
+  dateStr: string;
+  timeStr: string;
+  dayOfWeek: string;
+  relativeText: string;
+  isToday: boolean;
+  fromValue: string;
+  toValue: string;
+  fromName: string;
+  toName: string;
+  specialName?: string;
+  punyaKala?: TimingInterval;
+  mahaPunyaKala?: TimingInterval;
+  description: {
+    en: string;
+    hi: string;
+    sa: string;
+  };
+}
+
+export interface PlanetTransitStatus {
+  planetId: string;
+  planetName: string;
+  sanskritName: string;
+  symbol: string;
+  currentRasi: string;
+  currentRasiNumber: number;
+  degreesInRasi: string;
+  degreesInRasiNum: number;
+  progressPercent: number;
+  currentNakshatra: string;
+  currentNakshatraNumber: number;
+  currentPada: number;
+  isRetrograde: boolean;
+  isCombust?: boolean;
+  combustDistanceDeg?: number;
+  nextRasiTransit?: PlanetTransitionEvent;
+  nextNakshatraTransit?: PlanetTransitionEvent;
+  nextMotionTransit?: PlanetTransitionEvent;
+}
+
+export interface PlanetTransitionsData {
+  planets: PlanetTransitStatus[];
+  upcomingEvents: PlanetTransitionEvent[];
+  todayEvents: PlanetTransitionEvent[];
+}
+
 export type SwaraNadi = 'ida' | 'pingala' | 'sushumna';
 
 export interface SwaraDayRule {
@@ -153,6 +209,7 @@ export interface PanchangaResponse {
   sun_rasi?: string;
   moon_rasi?: string;
   swara_yoga?: SwaraYogaData;
+  planet_transitions?: PlanetTransitionsData;
 }
 
 export type CoordinateSelection =
@@ -182,3 +239,23 @@ export interface MonthlyPanchangaDay {
   rahu_kala?: TimingInterval;
   swara_yoga?: SwaraYogaData;
 }
+
+export type AppTheme = 'parchment' | 'nightSky';
+
+export interface UserSettings {
+  lang: 'en' | 'hi' | 'sa';
+  ayanamsa: CoordinateSelection;
+  monthSystem: MonthSystem;
+  currentCity: string;
+  theme?: AppTheme;
+  customCoords: {
+    lat: number;
+    lon: number;
+    tz: string;
+    name: string;
+    isDeviceLocation?: boolean;
+    accuracyMeters?: number;
+  } | null;
+  savedAt?: string;
+}
+

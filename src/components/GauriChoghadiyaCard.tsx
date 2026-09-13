@@ -3,12 +3,16 @@ import { Sun, Moon, Sparkles } from 'lucide-react';
 import type { PanchangaResponse } from '../types';
 import { type Language, translations, getLocalizedChoghadiya } from '../i18n';
 
+import type { AppTheme } from "../types";
+
 interface GauriChoghadiyaCardProps {
+  theme?: AppTheme;
   data: PanchangaResponse;
   lang: Language;
 }
 
-export const GauriChoghadiyaCard: React.FC<GauriChoghadiyaCardProps> = ({ data, lang }) => {
+export const GauriChoghadiyaCard: React.FC<GauriChoghadiyaCardProps> = ({ data, lang, theme }) => {
+  const isNight = theme === "nightSky";
   const [activeTab, setActiveTab] = useState<'day' | 'night'>('day');
   const t = translations[lang];
 

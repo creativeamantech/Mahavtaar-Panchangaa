@@ -26,12 +26,16 @@ import {
   Layers,
 } from 'lucide-react';
 
+import type { AppTheme } from "../types";
+
 interface SwaraYogaCardProps {
+  theme?: AppTheme;
   data: PanchangaResponse;
   lang: Language;
 }
 
-export const SwaraYogaCard: React.FC<SwaraYogaCardProps> = ({ data, lang }) => {
+export const SwaraYogaCard: React.FC<SwaraYogaCardProps> = ({ data, lang, theme }) => {
+  const isNight = theme === "nightSky";
   const [showTable, setShowTable] = useState(false);
   const [tableFilter, setTableFilter] = useState<'all' | 'shukla' | 'krishna'>('all');
   const [activeTab, setActiveTab] = useState<'current' | 'activities' | 'tattva'>('current');

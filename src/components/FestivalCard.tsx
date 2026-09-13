@@ -4,7 +4,10 @@ import type { Language } from '../i18n';
 import { EKADASHI_NAMES } from '../vedicData';
 import { Sparkles, Flame, Moon, Sun, HeartHandshake } from 'lucide-react';
 
+import type { AppTheme } from "../types";
+
 interface FestivalCardProps {
+  theme?: AppTheme;
   data: PanchangaResponse;
   lang: Language;
 }
@@ -18,7 +21,8 @@ interface ObservanceInfo {
   type: 'ekadashi' | 'purnima' | 'amavasya' | 'pradosham' | 'chaturthi' | 'shivaratri' | 'general';
 }
 
-export const FestivalCard: React.FC<FestivalCardProps> = ({ data, lang }) => {
+export const FestivalCard: React.FC<FestivalCardProps> = ({ data, lang, theme }) => {
+  const isNight = theme === "nightSky";
   const primaryTithiNum = data.tithi[0]?.number || 1;
   const isSukla = data.paksha === 'Śukla' || primaryTithiNum <= 15;
 
@@ -198,7 +202,7 @@ export const FestivalCard: React.FC<FestivalCardProps> = ({ data, lang }) => {
     return (
       <div
         id="vedic-contemplation-card"
-        className="glass-card rounded-[1.5rem] p-5 sm:p-6 flex items-center justify-between gap-4"
+        className={`rounded-[1.5rem] p-5 sm:p-6 flex items-center justify-between gap-4 ${isNight ? 'bg-[#0e1424]/90 border border-indigo-800/50 text-slate-100 shadow-xl' : 'glass-card'}`}
       >
         <div className="flex items-center space-x-4">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-200 to-amber-300 text-amber-800 shadow-sm border border-amber-400/50">

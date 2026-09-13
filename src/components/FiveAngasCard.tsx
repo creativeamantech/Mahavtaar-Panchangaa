@@ -1,6 +1,6 @@
 import React from 'react';
 import { Moon, Star, Compass, Sparkles, Sun } from 'lucide-react';
-import type { PanchangaResponse, Segment } from '../types';
+import type { PanchangaResponse, Segment, AppTheme } from '../types';
 import {
   type Language,
   translations,
@@ -20,9 +20,11 @@ import {
 interface FiveAngasCardProps {
   data: PanchangaResponse;
   lang: Language;
+  theme?: AppTheme;
 }
 
-export const FiveAngasCard: React.FC<FiveAngasCardProps> = ({ data, lang }) => {
+export const FiveAngasCard: React.FC<FiveAngasCardProps> = ({ data, lang, theme }) => {
+  const isNight = theme === 'nightSky';
   const t = translations[lang];
 
   const primaryTithiNum = data.tithi[0]?.number || 1;
@@ -46,7 +48,7 @@ export const FiveAngasCard: React.FC<FiveAngasCardProps> = ({ data, lang }) => {
   ) => {
     if (!segments || segments.length === 0) {
       return (
-        <div className="text-base font-bold text-stone-900 font-devanagari">{defaultName}</div>
+        <div className={`text-base font-bold font-devanagari ${isNight ? 'text-slate-100' : 'text-stone-900'}`}>{defaultName}</div>
       );
     }
 
@@ -66,15 +68,19 @@ export const FiveAngasCard: React.FC<FiveAngasCardProps> = ({ data, lang }) => {
     return (
       <div className="space-y-1.5">
         <div className="flex flex-wrap items-baseline justify-between gap-1.5">
-          <span className="text-base sm:text-lg font-bold text-stone-950 font-devanagari">
+          <span className={`text-base sm:text-lg font-bold font-devanagari ${isNight ? 'text-slate-100' : 'text-stone-950'}`}>
             {primaryLocalized}
           </span>
           {primary.ends ? (
-            <span className="inline-flex items-center rounded-md bg-amber-100/90 px-2 py-0.5 text-xs font-semibold text-amber-900 border border-amber-300/80 font-mono">
+            <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold border font-mono ${
+              isNight
+                ? 'bg-amber-950/70 text-amber-200 border-amber-700/60'
+                : 'bg-amber-100/90 text-amber-900 border-amber-300/80'
+            }`}>
               {t.endsAt} {primary.ends}
             </span>
           ) : (
-            <span className="text-[11px] text-stone-400 italic">
+            <span className={`text-[11px] italic ${isNight ? 'text-slate-400' : 'text-stone-400'}`}>
               {t.throughoutDay}
             </span>
           )}
@@ -82,28 +88,32 @@ export const FiveAngasCard: React.FC<FiveAngasCardProps> = ({ data, lang }) => {
 
         {/* Transliterated / Secondary English name if in Devanagari */}
         {lang !== 'en' && primary.name !== primaryLocalized && (
-          <div className="text-xs text-stone-500 font-sans tracking-wide">
+          <div className={`text-xs font-sans tracking-wide ${isNight ? 'text-slate-400' : 'text-stone-500'}`}>
             {primary.name}
           </div>
         )}
 
         {secondary && (
-          <div className="mt-1 rounded-md bg-amber-50/70 p-2 text-xs text-stone-700 border border-amber-200/60 flex flex-col gap-0.5">
-            <div className="flex items-center justify-between text-stone-500 text-[11px]">
-              <span className="font-medium text-amber-900 uppercase tracking-wider">
+          <div className={`mt-1 rounded-md p-2 text-xs border flex flex-col gap-0.5 ${
+            isNight
+              ? 'bg-slate-900/60 text-slate-200 border-slate-700/60'
+              : 'bg-amber-50/70 text-stone-700 border-amber-200/60'
+          }`}>
+            <div className={`flex items-center justify-between text-[11px] ${isNight ? 'text-slate-400' : 'text-stone-500'}`}>
+              <span className={`font-medium uppercase tracking-wider ${isNight ? 'text-amber-300' : 'text-amber-900'}`}>
                 {t.followedBy}:
               </span>
               {secondary.ends ? (
-                <span className="font-mono text-stone-600">
+                <span className={`font-mono ${isNight ? 'text-slate-300' : 'text-stone-600'}`}>
                   {t.endsAt} {secondary.ends}
                 </span>
               ) : (
-                <span className="italic text-stone-400">
+                <span className={`italic ${isNight ? 'text-slate-400' : 'text-stone-400'}`}>
                   ({t.throughoutDay})
                 </span>
               )}
             </div>
-            <div className="font-semibold text-stone-900 font-devanagari">
+            <div className={`font-semibold font-devanagari ${isNight ? 'text-slate-100' : 'text-stone-900'}`}>
               {secondaryLocalized}
             </div>
           </div>
@@ -160,44 +170,66 @@ export const FiveAngasCard: React.FC<FiveAngasCardProps> = ({ data, lang }) => {
   return (
     <div
       id="five-angas-card"
-      className="glass-card rounded-[1.5rem] border border-amber-300/50 bg-gradient-to-b from-amber-50/40 via-white/50 to-orange-50/30 p-6 sm:p-8"
+      className={`glass-card rounded-[1.5rem] p-6 sm:p-8 transition-colors ${
+        isNight
+          ? 'border-indigo-800/50 bg-[#0e1424]/90 text-slate-100'
+          : 'border border-amber-300/50 bg-gradient-to-b from-amber-50/40 via-white/50 to-orange-50/30'
+      }`}
     >
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-amber-200/70 pb-3.5 gap-2">
+      <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between border-b pb-3.5 gap-2 ${
+        isNight ? 'border-indigo-800/40' : 'border-amber-200/70'
+      }`}>
         <div className="flex items-center space-x-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-600 text-white shadow-xs font-serif-vedic text-base font-bold">
             ॐ
           </div>
           <div>
-            <h2 className="text-lg font-bold text-stone-900 font-serif-vedic tracking-tight">
+            <h2 className={`text-lg font-bold font-serif-vedic tracking-tight ${
+              isNight ? 'text-amber-200' : 'text-stone-900'
+            }`}>
               {t.limbsTitle}
             </h2>
-            <p className="text-xs text-stone-500 font-sans">{t.limbsSubtitle}</p>
+            <p className={`text-xs font-sans ${isNight ? 'text-slate-400' : 'text-stone-500'}`}>{t.limbsSubtitle}</p>
           </div>
         </div>
-        <div className="text-xs text-amber-900/80 font-mono bg-amber-100/60 px-3 py-1 rounded-full border border-amber-300/60 self-start sm:self-auto">
+        <div className={`text-xs font-mono px-3 py-1 rounded-full border self-start sm:self-auto ${
+          isNight
+            ? 'bg-indigo-950/80 text-indigo-300 border-indigo-700/50'
+            : 'text-amber-900/80 bg-amber-100/60 border-amber-300/60'
+        }`}>
           JD: {data.sunrise_jd?.toFixed(4)}
         </div>
       </div>
 
       {/* Five Limbs Grid */}
-      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 sm:gap-5">
         {/* 1. Tithi */}
         <div
           id="anga-tithi"
-          className="rounded-xl border border-stone-200/90 bg-white p-4 shadow-xs transition-all hover:border-amber-400 hover:shadow-sm flex flex-col justify-between"
+          className={`rounded-xl border p-4 shadow-xs transition-all flex flex-col justify-between ${
+            isNight
+              ? 'border-indigo-800/40 bg-[#12182b] text-slate-100 hover:border-indigo-600'
+              : 'border-stone-200/90 bg-white hover:border-amber-400 hover:shadow-sm'
+          }`}
         >
           <div>
-            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-amber-800 mb-2">
+            <div className={`flex items-center justify-between text-xs font-bold uppercase tracking-wider mb-2 ${
+              isNight ? 'text-amber-300' : 'text-amber-800'
+            }`}>
               <span className="flex items-center gap-1.5">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-amber-900 text-[11px] font-bold">
+                <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold ${
+                  isNight ? 'bg-amber-950/80 text-amber-300' : 'bg-amber-100 text-amber-900'
+                }`}>
                   १
                 </span>
-                <Moon className="h-3.5 w-3.5 text-amber-700" />
+                <Moon className={`h-3.5 w-3.5 ${isNight ? 'text-amber-400' : 'text-amber-700'}`} />
                 <span>{t.tithi}</span>
               </span>
               {tithiAttr && (
-                <span className="rounded bg-stone-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-950 font-serif-vedic">
+                <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold font-serif-vedic ${
+                  isNight ? 'bg-slate-800 text-amber-300' : 'bg-stone-100 text-amber-950'
+                }`}>
                   {tithiAttr.category[lang]}
                 </span>
               )}
@@ -207,13 +239,15 @@ export const FiveAngasCard: React.FC<FiveAngasCardProps> = ({ data, lang }) => {
             )}
           </div>
 
-          <div className="mt-3 border-t border-stone-100 pt-2 text-[11px] text-stone-500 space-y-1">
+          <div className={`mt-3 border-t pt-2 text-[11px] space-y-1 ${
+            isNight ? 'border-slate-800 text-slate-400' : 'border-stone-100 text-stone-500'
+          }`}>
             {tithiAttr && (
-              <div className="text-amber-900 font-medium truncate">
-                <span className="text-stone-400">Deity:</span> {tithiAttr.deity[lang]}
+              <div className={`font-medium truncate ${isNight ? 'text-amber-300' : 'text-amber-900'}`}>
+                <span className={isNight ? 'text-slate-500' : 'text-stone-400'}>Deity:</span> {tithiAttr.deity[lang]}
               </div>
             )}
-            <div className="text-[10px] text-stone-400">
+            <div className={`text-[10px] ${isNight ? 'text-slate-400' : 'text-stone-400'}`}>
               {lang === 'sa'
                 ? 'सूर्य-चन्द्रयोः १२° अन्तरम्'
                 : lang === 'hi'
@@ -226,19 +260,29 @@ export const FiveAngasCard: React.FC<FiveAngasCardProps> = ({ data, lang }) => {
         {/* 2. Nakshatra */}
         <div
           id="anga-nakshatra"
-          className="rounded-xl border border-stone-200/90 bg-white p-4 shadow-xs transition-all hover:border-amber-400 hover:shadow-sm flex flex-col justify-between"
+          className={`rounded-xl border p-4 shadow-xs transition-all flex flex-col justify-between ${
+            isNight
+              ? 'border-indigo-800/40 bg-[#12182b] text-slate-100 hover:border-indigo-600'
+              : 'border-stone-200/90 bg-white hover:border-amber-400 hover:shadow-sm'
+          }`}
         >
           <div>
-            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-amber-800 mb-2">
+            <div className={`flex items-center justify-between text-xs font-bold uppercase tracking-wider mb-2 ${
+              isNight ? 'text-amber-300' : 'text-amber-800'
+            }`}>
               <span className="flex items-center gap-1.5">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-amber-900 text-[11px] font-bold">
+                <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold ${
+                  isNight ? 'bg-amber-950/80 text-amber-300' : 'bg-amber-100 text-amber-900'
+                }`}>
                   २
                 </span>
-                <Star className="h-3.5 w-3.5 text-amber-700" />
+                <Star className={`h-3.5 w-3.5 ${isNight ? 'text-amber-400' : 'text-amber-700'}`} />
                 <span>{t.nakshatra}</span>
               </span>
               {nakAttr && (
-                <span className="rounded bg-stone-100 px-1.5 py-0.5 text-[10px] font-bold text-stone-700">
+                <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                  isNight ? 'bg-slate-800 text-slate-300' : 'bg-stone-100 text-stone-700'
+                }`}>
                   {nakAttr.gana[lang]}
                 </span>
               )}
@@ -248,13 +292,15 @@ export const FiveAngasCard: React.FC<FiveAngasCardProps> = ({ data, lang }) => {
             )}
           </div>
 
-          <div className="mt-3 border-t border-stone-100 pt-2 text-[11px] text-stone-500 space-y-1">
+          <div className={`mt-3 border-t pt-2 text-[11px] space-y-1 ${
+            isNight ? 'border-slate-800 text-slate-400' : 'border-stone-100 text-stone-500'
+          }`}>
             {nakAttr && (
-              <div className="text-amber-900 font-medium truncate">
-                <span className="text-stone-400">Lord:</span> {nakAttr.lord[lang]} • {nakAttr.symbol}
+              <div className={`font-medium truncate ${isNight ? 'text-amber-300' : 'text-amber-900'}`}>
+                <span className={isNight ? 'text-slate-500' : 'text-stone-400'}>Lord:</span> {nakAttr.lord[lang]} • {nakAttr.symbol}
               </div>
             )}
-            <div className="text-[10px] text-stone-400">
+            <div className={`text-[10px] ${isNight ? 'text-slate-400' : 'text-stone-400'}`}>
               {lang === 'sa'
                 ? 'क्रान्तिवृत्ते १३°२०\' नक्षत्रभागः'
                 : lang === 'hi'
@@ -267,23 +313,31 @@ export const FiveAngasCard: React.FC<FiveAngasCardProps> = ({ data, lang }) => {
         {/* 3. Yoga */}
         <div
           id="anga-yoga"
-          className="rounded-xl border border-stone-200/90 bg-white p-4 shadow-xs transition-all hover:border-amber-400 hover:shadow-sm flex flex-col justify-between"
+          className={`rounded-xl border p-4 shadow-xs transition-all flex flex-col justify-between ${
+            isNight
+              ? 'border-indigo-800/40 bg-[#12182b] text-slate-100 hover:border-indigo-600'
+              : 'border-stone-200/90 bg-white hover:border-amber-400 hover:shadow-sm'
+          }`}
         >
           <div>
-            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-amber-800 mb-2">
+            <div className={`flex items-center justify-between text-xs font-bold uppercase tracking-wider mb-2 ${
+              isNight ? 'text-amber-300' : 'text-amber-800'
+            }`}>
               <span className="flex items-center gap-1.5">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-amber-900 text-[11px] font-bold">
+                <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold ${
+                  isNight ? 'bg-amber-950/80 text-amber-300' : 'bg-amber-100 text-amber-900'
+                }`}>
                   ३
                 </span>
-                <Compass className="h-3.5 w-3.5 text-amber-700" />
+                <Compass className={`h-3.5 w-3.5 ${isNight ? 'text-amber-400' : 'text-amber-700'}`} />
                 <span>{t.yoga}</span>
               </span>
               {yogaAttr && (
                 <span
                   className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
                     yogaAttr.nature === 'auspicious'
-                      ? 'bg-emerald-100 text-emerald-900'
-                      : 'bg-rose-100 text-rose-900'
+                      ? isNight ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-800/60' : 'bg-emerald-100 text-emerald-900'
+                      : isNight ? 'bg-rose-950/80 text-rose-300 border border-rose-800/60' : 'bg-rose-100 text-rose-900'
                   }`}
                 >
                   {yogaAttr.nature === 'auspicious'
@@ -305,13 +359,15 @@ export const FiveAngasCard: React.FC<FiveAngasCardProps> = ({ data, lang }) => {
             )}
           </div>
 
-          <div className="mt-3 border-t border-stone-100 pt-2 text-[11px] text-stone-500 space-y-1">
+          <div className={`mt-3 border-t pt-2 text-[11px] space-y-1 ${
+            isNight ? 'border-slate-800 text-slate-400' : 'border-stone-100 text-stone-500'
+          }`}>
             {yogaAttr && (
-              <div className="text-amber-950 font-medium truncate">
+              <div className={`font-medium truncate ${isNight ? 'text-amber-200' : 'text-amber-950'}`}>
                 {yogaAttr.meaning[lang]}
               </div>
             )}
-            <div className="text-[10px] text-stone-400">
+            <div className={`text-[10px] ${isNight ? 'text-slate-400' : 'text-stone-400'}`}>
               {lang === 'sa'
                 ? 'सूर्य-चन्द्रयोः योगमानम्'
                 : lang === 'hi'
@@ -324,19 +380,29 @@ export const FiveAngasCard: React.FC<FiveAngasCardProps> = ({ data, lang }) => {
         {/* 4. Karana */}
         <div
           id="anga-karana"
-          className="rounded-xl border border-stone-200/90 bg-white p-4 shadow-xs transition-all hover:border-amber-400 hover:shadow-sm flex flex-col justify-between"
+          className={`rounded-xl border p-4 shadow-xs transition-all flex flex-col justify-between ${
+            isNight
+              ? 'border-indigo-800/40 bg-[#12182b] text-slate-100 hover:border-indigo-600'
+              : 'border-stone-200/90 bg-white hover:border-amber-400 hover:shadow-sm'
+          }`}
         >
           <div>
-            <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-amber-800 mb-2">
+            <div className={`flex items-center justify-between text-xs font-bold uppercase tracking-wider mb-2 ${
+              isNight ? 'text-amber-300' : 'text-amber-800'
+            }`}>
               <span className="flex items-center gap-1.5">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-amber-900 text-[11px] font-bold">
+                <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold ${
+                  isNight ? 'bg-amber-950/80 text-amber-300' : 'bg-amber-100 text-amber-900'
+                }`}>
                   ४
                 </span>
-                <Sparkles className="h-3.5 w-3.5 text-amber-700" />
+                <Sparkles className={`h-3.5 w-3.5 ${isNight ? 'text-amber-400' : 'text-amber-700'}`} />
                 <span>{t.karana}</span>
               </span>
               {karAttr && (
-                <span className="rounded bg-stone-100 px-1.5 py-0.5 text-[10px] font-bold text-stone-700">
+                <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                  isNight ? 'bg-slate-800 text-slate-300' : 'bg-stone-100 text-stone-700'
+                }`}>
                   {karAttr.type === 'chara'
                     ? lang === 'sa'
                       ? 'चर'
@@ -356,13 +422,15 @@ export const FiveAngasCard: React.FC<FiveAngasCardProps> = ({ data, lang }) => {
             )}
           </div>
 
-          <div className="mt-3 border-t border-stone-100 pt-2 text-[11px] text-stone-500 space-y-1">
+          <div className={`mt-3 border-t pt-2 text-[11px] space-y-1 ${
+            isNight ? 'border-slate-800 text-slate-400' : 'border-stone-100 text-stone-500'
+          }`}>
             {karAttr && (
-              <div className="text-amber-900 font-medium truncate">
-                <span className="text-stone-400">Deity:</span> {karAttr.deity[lang]}
+              <div className={`font-medium truncate ${isNight ? 'text-amber-300' : 'text-amber-900'}`}>
+                <span className={isNight ? 'text-slate-500' : 'text-stone-400'}>Deity:</span> {karAttr.deity[lang]}
               </div>
             )}
-            <div className="text-[10px] text-stone-400">
+            <div className={`text-[10px] ${isNight ? 'text-slate-400' : 'text-stone-400'}`}>
               {lang === 'sa'
                 ? 'तिथेः अर्धभागः (६° विस्तारः)'
                 : lang === 'hi'
@@ -375,34 +443,44 @@ export const FiveAngasCard: React.FC<FiveAngasCardProps> = ({ data, lang }) => {
         {/* 5. Vaara */}
         <div
           id="anga-vaara"
-          className="rounded-xl border border-stone-200/90 bg-white p-4 shadow-xs transition-all hover:border-amber-400 hover:shadow-sm flex flex-col justify-between"
+          className={`rounded-xl border p-4 shadow-xs transition-all flex flex-col justify-between ${
+            isNight
+              ? 'border-indigo-800/40 bg-[#12182b] text-slate-100 hover:border-indigo-600'
+              : 'border-stone-200/90 bg-white hover:border-amber-400 hover:shadow-sm'
+          }`}
         >
           <div>
-            <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-amber-800 mb-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-amber-900 text-[11px] font-bold">
+            <div className={`flex items-center space-x-2 text-xs font-bold uppercase tracking-wider mb-2 ${
+              isNight ? 'text-amber-300' : 'text-amber-800'
+            }`}>
+              <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold ${
+                isNight ? 'bg-amber-950/80 text-amber-300' : 'bg-amber-100 text-amber-900'
+              }`}>
                 ५
               </span>
-              <Sun className="h-3.5 w-3.5 text-amber-700" />
+              <Sun className={`h-3.5 w-3.5 ${isNight ? 'text-amber-400' : 'text-amber-700'}`} />
               <span>{t.vaara}</span>
             </div>
             <div className="space-y-1">
-              <div className="text-base sm:text-lg font-bold text-stone-950 font-devanagari">
+              <div className={`text-base sm:text-lg font-bold font-devanagari ${isNight ? 'text-slate-100' : 'text-stone-950'}`}>
                 {localizedVaara}
               </div>
               {lang !== 'en' && (
-                <div className="text-xs text-stone-500">{data.vaara}</div>
+                <div className={`text-xs ${isNight ? 'text-slate-400' : 'text-stone-500'}`}>{data.vaara}</div>
               )}
-              <div className="text-xs font-semibold text-amber-900 pt-0.5">
+              <div className={`text-xs font-semibold pt-0.5 ${isNight ? 'text-amber-300' : 'text-amber-900'}`}>
                 {vaaraInfo.deity}
               </div>
             </div>
           </div>
 
-          <div className="mt-3 border-t border-stone-100 pt-2 text-[11px] text-stone-500 space-y-1">
-            <div className="text-amber-950 text-[11px]">
-              <span className="text-stone-400">Attr:</span> {vaaraInfo.metal}
+          <div className={`mt-3 border-t pt-2 text-[11px] space-y-1 ${
+            isNight ? 'border-slate-800 text-slate-400' : 'border-stone-100 text-stone-500'
+          }`}>
+            <div className={`text-[11px] ${isNight ? 'text-amber-200' : 'text-amber-950'}`}>
+              <span className={isNight ? 'text-slate-500' : 'text-stone-400'}>Attr:</span> {vaaraInfo.metal}
             </div>
-            <div className="text-[10px] text-stone-400">
+            <div className={`text-[10px] ${isNight ? 'text-slate-400' : 'text-stone-400'}`}>
               {lang === 'sa'
                 ? 'सूर्योदयात् सूर्योदयपर्यन्तम्'
                 : lang === 'hi'

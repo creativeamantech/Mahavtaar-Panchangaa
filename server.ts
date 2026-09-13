@@ -6,6 +6,7 @@ import {
   computePanchanga,
   computePanchangaCustom,
   searchCities,
+  findNearestCity,
   getPopularCities,
 } from './server/panchangaEngine';
 import type { MonthSystem, CoordinateSelection } from './src/types';
@@ -32,6 +33,22 @@ async function startServer() {
     } catch (err: any) {
       console.error('Error in /api/cities:', err);
       res.status(500).json({ error: err.message || 'Failed to search cities' });
+    }
+  });
+
+  // API: Nearest city lookup for GPS device location
+  app.get('/api/nearest-city', (req, res) => {
+    try {
+      const lat = parseFloat(req.query.lat as string);
+      const lon = parseFloat(req.query.lon as string);
+      if (isNaN(lat) || isNaN(lon)) {
+        return res.status(400).json({ error: 'Valid lat and lon query parameters are required' });
+      }
+      const match = findNearestCity(lat, lon);
+      res.json(match || { city: null, distanceKm: null });
+    } catch (err: any) {
+      console.error('Error in /api/nearest-city:', err);
+      res.status(500).json({ error: err.message || 'Failed to find nearest city' });
     }
   });
 
